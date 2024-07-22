@@ -1,0 +1,225 @@
+body {
+  background: #2b5876;
+  background: -webkit-linear-gradient(to right, #2b5876, #4e4376);
+  background: linear-gradient(to right, #2b5876, #4e4376);
+}
+
+.form-group {
+  margin-top: 15px;
+}
+
+.login-form {
+  font-family: Arial, Helvetica, sans-serif;
+  width: 346px;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: auto;
+  position: absolute;
+}
+
+.login-form .login-username,
+.login-form .login-password,
+.login-form .login-submit {
+  -webkit-appearance: none;
+  height: 45px;
+  border-radius: 4px;
+  border: none;
+  width: 301px;
+  display: block;
+  box-shadow: rgba(0, 0, 0, 0.1) 3px 3px 5px;
+  font-size: 13px;
+}
+
+.login-form label {
+  height: 45px;
+  width: 45px;
+  background: white;
+  display: inline-block;
+  border-radius: 0 4px 4px 0;
+  margin-left: -2px;
+}
+
+.login-form label > svg {
+  width: 15px;
+  height: 100%;
+  text-align: center;
+  fill: #2b5876;
+  vertical-align: middle;
+}
+
+.login-form .login-username, .login-form .login-password {
+  padding: 0 20px 0 20px;
+  float: left;
+  border-radius: 4px 0 0 4px;
+  box-sizing: border-box;
+}
+
+.login-form .login-submit {
+  color: white;
+  background: #2ecc71;
+  width: 100%;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.login-form .login-submit:hover, .login-form .login-submit:active {
+  background: #27ae60;
+  outline: none;
+}
+
+.login-form input:focus, .login-form input:focus {
+  outline: 0;
+}
+
+.login-form h1, .login-form p, .login-form a {
+  color: white;
+  margin: 10px 0 10px 0;
+  text-decoration: none;
+}
+
+.login-form h1 {
+    font-weight: 100;
+    margin-bottom: 20px;
+    font-size: 42px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.login-form .login-motd {
+  font-size: 14px;
+  width: 300px;
+  margin: 0 auto 20px auto;
+}
+
+.login-form .login-forgotpassword {
+  font-size: 12px;
+  margin-top: 18px;
+  display: block;
+}
+
+.login-form .login-forgotpassword:hover,
+.login-form .login-forgotpassword:active{
+  text-decoration: underline;
+}
+
+body {font-family: 'poppins', Arial, sans-serif !important;font-size:14px;font-weight:300;line-height:1.6em;color:#656565;background-color: #caedf3 !important;background-position: 50% 0;background-repeat: no-repeat;background-size: cover;height: 100vh;}
+a:active {outline:0;}
+
+.clear {clear:both;}
+#wrapper {
+  /* width: 1100px; */
+  margin: 0px auto;
+  /* float: left; */
+  clear: both;
+  /* text-align: center; */
+}
+#wrapper h3{margin-top: 50px;text-align: center;}
+#wrapper h4{ margin-top: 15px; margin-bottom: 0; text-align: center;}
+#wrapper h4 a{color: #24344b;text-decoration: none;color: #fff;text-shadow: 0px 1px 1px #649da7;font-size: 20px;}
+
+#loadgrid .tabs-left {float: left;margin-top: 0;margin-bottom: 0;}
+#loadgrid .chat-title {
+  float: left;
+  width: 26%;
+  border-right: 0px #ddd solid;
+  height: 100vh;
+  background: #24344b;
+}
+#loadgrid .chat-title ul {
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  margin-bottom: 0;
+  border: 0px;
+  /* min-height: 282px; */
+  /* max-height: 476px; */
+  /* overflow: auto; */
+  /* overflow-x: hidden; */
+}
+#loadgrid .chat-title ul .search{padding:10px 20px;width: 100%;float: left;border-bottom: 1px #323840 solid;}
+#loadgrid .chat-title ul .search .input_search {border: 1px solid #363d45;border-right:0;margin:0;padding:0;padding-left: 12%;width: 100%;height: 34px;float:left;display:block;font-size:12px;color: #979ea6;background: url('https://akshaysyal.files.wordpress.com/2017/03/icon_search.png') no-repeat #3b4f6a 9px 10px;border-radius: 50px;}
+
+#loadgrid .chat-title ul .title{}
+#loadgrid .chat-title ul .title h3{width: 100%;float: left;padding: 9px 18px;background: #2a3848;border: 1px #212c38 solid;margin:0px;font-size: 18px;color: #fff;line-height: 20px;}
+#loadgrid .chat-title ul li{cursor: pointer;line-height: 20px;padding: 0px;border-bottom: 1px #24344b solid;width: 100%;border-right: 0px;}
+#loadgrid .chat-title ul li .unread{color: #000;background:#fff;border-radius:50px;border: 0px #212c38 solid;float:right;width:25px;height:25px;padding:3px 4px;line-height: 21px;text-align: center;font-size: 12px;margin-right:20px;}
+#loadgrid .chat-title ul li:last-child{border-right: 0px #ddd solid;}
+#loadgrid .chat-title ul li a{padding: 11px 15px 6px 15px;background: #2b3c58;width: 100%;color: #fff;float: left;clear: both;border-bottom: 1px #24344b solid;}
+#loadgrid .chat-title ul li a .name{font-size: 12px;font-weight: normal;margin: 0px;width: 100%;float: left;text-align: left;}
+#loadgrid .chat-title ul li a .online{ background: #25b000; padding: 3px; width: 2px;height: 2px; /* float: left; */ position: relative; border-radius: 20px;top: -20px;right: 0;left: 45px;display: inline-block;}
+#loadgrid .chat-title ul li a .sub-msg{font-size: 10px;color: #b7bbc1;margin: 5px 0;float: left;width: 80%;text-align: left;}
+#loadgrid .chat-title ul li a .offline{ background: red; padding: 3px; width: 2px;height: 2px; /* float: left; */ position: relative; border-radius: 20px;top: -20px;right: 0;left: 45px;display: inline-block;}
+#loadgrid .chat-title ul li a .min{font-size: 11px;color: #979ea6;margin: 5px 0;float: right;width: 16%;text-align: right;}
+#loadgrid .chat-title ul li.active a:hover {background: #2b3c58;color: #fff;width:100%;border-right:0px;}
+#loadgrid .chat-title ul li.active a {background: #3b4f6a;color: #fff;margin-left: 0px;border: 0px;}
+#loadgrid .chat-title ul li a:hover {background: #3b4f6a;color: #fff;border-bottom: 1px #24344b solid;border-top: 0px;/* float: left; *//* width: 100%; */border-right: 0;border-left: 0px;}
+#loadgrid .chat-des{float: left;width: 74%;margin-left: 0px;/* z-index: 999999999; */border-left: 1px #ddd solid;background: #fff;}
+#loadgrid .chat-des .tab-pane{}
+#loadgrid .chat-des .tab-pane .title{width: 100%;float: left;padding: 0;background: #fff;border-bottom: 1px #ddd solid;height: 55px;}
+#loadgrid .chat-des .tab-pane .title h3{float: left;font-size: 14px;margin: 0px;line-height: 25px;color: #282e35;padding: 15px 7px; font-weight:600;}
+#loadgrid .chat-des .tab-pane .title h3 strong{ font-size:10px; font-weight:600;}
+#loadgrid .chat-des .tab-pane .title .icons{line-height: 25px;color: #282e35;padding: 4px 7px;width: 35px;margin: 8px 4px;height: 35px;text-align: center;border: 1px #ddd solid;/* margin: -1px; */border-top: 0px;cursor: pointer;background: #e4e5e7;float: right;border-radius: 60px;}
+#loadgrid .chat-des .tab-pane .message-info {
+  width: 100%;
+  padding: 10px;
+  float: left;
+  /* min-height: 370px; */
+  height: 86.5vh;
+  overflow: auto;
+  overflow-x: hidden;
+  background: #fff;
+}
+#loadgrid .chat-des .tab-pane .message-info .full{width: 94%;margin:5px 0;float: left;}
+#loadgrid .chat-des .tab-pane .message-info .full img{border-radius: 10px;width: 30px;margin-right: 5px;float: left;margin-top: 0px;}
+#loadgrid .chat-des .tab-pane .message-info .full.snd_row{width: 100%;margin:5px 0;float: right;}
+#loadgrid .chat-des .tab-pane .message-info .full.snd_row img{ float:right;  margin-right:0px; margin-left:5px;}
+#loadgrid .chat-des .tab-pane .message-info .full .date-change{ width: 100%; margin:0; float: left; text-align:center;}
+#loadgrid .chat-des .tab-pane .message-info .full .text{position: relative;line-height: 17px;color: #66696a;font-weight: normal;font-size: 11px;background-color: #f6f7fb;padding: 6px 15px;white-space: pre-line;word-wrap: break-word;text-align: left;max-width: 93%;box-sizing: border-box;float: left;display: inline-block;border-top-left-radius: 0px;border-top-right-radius: 25px;border-bottom-right-radius: 25px;border-bottom-left-radius: 25px;}
+#loadgrid .chat-des .tab-pane .message-info .full .text:after {right: 100%;top: 50%;border: solid transparent;content: " ";height: 0;width: 0;position: absolute;pointer-events: none;border-color: f1f3f5;border-right-color: #ffffff;border-width: 5px;margin-top: -6px;}
+#loadgrid .chat-des .tab-pane .message-info .full.snd_row .text{position: relative;line-height: 17px;color: #000;font-weight: normal;font-size: 11px;background-color: #e4f6f6;padding: 6px 15px;white-space: pre-line;word-wrap: break-word;text-align: left;max-width: 93%;box-sizing: border-box;float: right;display: inline-block;border-top-left-radius: 25px;border-top-right-radius: 0;border-bottom-right-radius: 25px;border-bottom-left-radius: 25px;}
+#loadgrid .chat-des .tab-pane .message-info .full.snd_row .text:after {left: 100%;top: 50%;border: solid transparent;content: " ";height: 0;width: 0;position: absolute;pointer-events: none;border-color: d3d3d3;border-left-color: #ffffff;border-width: 5px;margin-top: -6px;}
+#loadgrid .chat-des .tab-pane .message-info .full h5{color: #66696a;font-size: 9px;display: inline-block;width: 91%;margin-bottom:0px;float: left;margin-left: 38px;}
+#loadgrid .chat-des .tab-pane .message-info .full.snd_row h5{color:#66696a;font-size: 9px;display:inline-block;width: 91%;margin-bottom:0px;text-align: right;float: right;margin-right: 38px;}
+#loadgrid .chat-des .tab-pane .reply{float:left;width:100%;border-top: 1px #ddd solid;padding: 0;background: #fff;}
+#loadgrid .chat-des .tab-pane .reply .reply-area{width: 86%;float:left;}
+#loadgrid .chat-des .tab-pane .reply .attach{line-height: 25px;color: #282e35;padding: 11px 7px;width: 44px;height: 44px;text-align: center;border: 0px #ddd solid;margin: -1px;cursor: pointer;float: left;border-right: 0px;}
+#loadgrid .chat-des .tab-pane .reply .reply-area textarea{border-radius:0px;box-shadow:none;margin-right: 0px;float:left;resize:none;border: 0px;font-size: 12px;height: 44px;}
+#loadgrid .chat-des .tab-pane .reply .reply-submit{border-radius:0px; box-shadow:none; margin-left:5px; float:left;}
+#loadgrid .chat-des .tab-pane .reply .reply-submit .btn{box-shadow:none;margin-left:5px;float: right;padding: 7px;font-size:13px;text-transform:uppercase;background: #3b4f6a;color: #777;margin-top: 5px;border: 1px #777 solid;border-radius: 40px;font-weight: 600;width: 40px;height: 40px;margin-bottom: 5px;}
+
+
+
+
+
+
+/* Hide the actual file input */
+#file-upload {
+  display: none;
+}
+
+/* Style the custom label */
+.custom-file-upload {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.custom-file-label {
+  padding: 20px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  border: 1px solid #007bff;
+  display: inline-block;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.custom-file-label:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
