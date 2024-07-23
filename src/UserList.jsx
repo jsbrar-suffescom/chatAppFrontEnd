@@ -2,60 +2,67 @@ import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import Modal from 'react-modal';
 
 const UserList = () => {
-    // FOR FETCHING USERS
     const [users, setUsers] = useState([]);
-    const navigate = useNavigate();
     const [receiverInfo, setReceiverInfo] = useState({ fullName: "", receiverId: "" });
-
-    // FOR CHAT
-    const socket = useMemo(() => io("http://localhost:8000", { withCredentials: true }), []);
-    const userId = localStorage.getItem('userId');
-    const token = localStorage.getItem('token');
     const [messagesList, setMessagesList] = useState([]);
     const [content, setContent] = useState('');
     const [files, setFiles] = useState([]);
-    const [eventTrigger, setEventTrigger] = useState(false);
+    const [userDetails, setUserDetails] = useState("");
+    const [chatRoom, setChatRoom] = useState("");
+    const [allChatRooms, setAllChatRooms] = useState([]);
+    const [selectedChatRoomIds, setSelectedChatRoomIds] = useState([]); // State for selected chat rooms
+    const [groupName, setGroupName] = useState("")
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const navigate = useNavigate();
+    const socket = useMemo(() => io("http://localhost:8000", { withCredentials: true }), []);
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
 
+    // Fetch User Details
+    const fetchUserDetails = () => {
+        axios.get("http://localhost:8000/api/v1/users/getUserDetails", {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then((resp) => {
+            setUserDetails(resp.data.data);
+        }).catch((error) => {
+            console.log("ERROR : ", error);
+        });
+    };
 
-    const [chatRoom, setChatRoom] = useState("")
+    // Fetch All Chat Rooms
+    const fetchAllChatRooms = () => {
+        axios.get(`http://localhost:8000/api/v1/chatRoom/getChatRooms/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then((resp) => {
+            setAllChatRooms(resp.data.data);
+        }).catch((error) => {
+            console.log("ERROR :: ", error);
+        });
+    };
 
-
-
-
-    // FOR FETCHING USERS 
+    // Fetch Users
     const fetchUsers = async () => {
         try {
             const response = await axios.get(`http://localhost:8000/api/v1/users/getAllUsers`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
-            console.log("RESP ", response.data.data)
             setUsers(response.data.data);
         } catch (error) {
-            console.log("Error :: ", error)
+            console.log("Error :: ", error);
         }
     };
 
-
-
     useEffect(() => {
+        fetchUserDetails();
         fetchUsers();
-        setEventTrigger(false);
-    }, [eventTrigger]);
-
-    const [socketId, setSocketId] = useState("")
-
-
-    useEffect(() => {
+        fetchAllChatRooms();
 
         socket.on("connect", () => {
-
-            console.log("SOCKET ID ", socket.id)
             const body = { userId, socketId: socket.id };
-
             axios.post("http://localhost:8000/api/v1/users/setSocketId", body, {
                 headers: { 'Authorization': token }
             }).then((res) => {
@@ -63,8 +70,7 @@ const UserList = () => {
             }).catch((err) => {
                 console.log("ERROR", err);
             });
-
-        })
+        });
 
         socket.emit('updateStatus', { userId, status: "online" });
 
@@ -73,106 +79,46 @@ const UserList = () => {
         });
 
         return () => {
-            socket.disconnect()
-        }
-    }, []);
-
-    // FOR RECEIVING MESSAGES IN REAL TIME
-    useEffect(() => {
-        // socket.on("receive-message", (data) => {
-
-        //     // console.log("Message received:", data.sender);
-        //     // console.log("RECEIVER INFO", receiverInfo.receiverId);
-
-
-        //     fetchUsers();
-
-        //     if (data.sender === receiverInfo.receiverId) {
-        //         console.log("DATA FROM MSG REC" + data.sender+" "+receiverInfo.receiverId);
-        //         setMessagesList((prevMessagesList) => [...prevMessagesList, data]);
-        //     }
-
-
-
-
-        // });
-    }, [receiverInfo.receiverId]);
-
-    const getSocketId = async () => {
-        // try {
-        //     const resp = await axios.get(`http://localhost:8000/api/v1/users/getSocketId/${receiverInfo.receiverId}`, {
-        //         headers: { Authorization: token }
-        //     });
-        //     setUserSocketId(resp.data.data.socketId);
-        // } catch (err) {
-        //     console.log("ERROR:", err);
-        // }
-    };
-
-    // FOR FETCHING MESSAGES 
-    // useEffect(() => {
-    //     const fetchMessages = () => {
-    //         axios.get(`http://localhost:8000/api/v1/chatRoom/getChatRoomMessages/${chatRoom._id}`, {
-    //             headers: { Authorization: token }
-    //         }).then((resp) => {
-    //             console.log("MESSSAGES :: ", resp.data.data)
-    //             setMessagesList(resp.data.data);
-    //         }).catch((err) => {
-    //             console.log("ERROR", err);
-    //         });
-    //     };
-    //     if(chatRoom){
-    //         fetchMessages()
-    //     }
-    // }, [chatRoom])
-
-
-
-
-
-
-
-
-    // useEffect(() => {
-    //     if (currentRoom) {
-    //         socket.emit('joinRoom', { roomId: currentRoom._id, userId: user._id });
-    //         const fetchMessages = async () => {
-    //             const { data } = await axios.get(`/api/messages/${currentRoom._id}`);
-    //             setMessagesList(data);
-    //         };
-
-
-    //     }
-    // }, [chatRoom]);
-
-    useEffect(() => {
-        socket.on('receiveMessage', (newMessage) => {
-            console.log("CHAT ROOM", chatRoom)
-            console.log("IDSSSS ::>> ", newMessage.chatRoomId, chatRoom._id)
-            if (newMessage.chatRoomId === chatRoom._id) {
-                setMessagesList((prevMessages) => [...prevMessages, newMessage]);
-            }
-
-        });
-
-        return () => {
-            socket.off('receiveMessage');
+            socket.disconnect();
         };
-    }, [chatRoom]);
+    }, [socket, userId, token]);
+
+    useEffect(() => {
+        if (chatRoom) {
+            socket.emit('joinRoom', { roomId: chatRoom._id, userId });
+            const fetchMessages = () => {
+                axios.get(`http://localhost:8000/api/v1/chatRoom/getChatRoomMessages/${chatRoom._id}`, {
+                    headers: { Authorization: token }
+                }).then((resp) => {
+                    setMessagesList(resp.data.data);
+                }).catch((err) => {
+                    console.log("ERROR", err);
+                });
+            };
+            fetchMessages();
+
+            socket.on('receiveMessage', (newMessage) => {
+                if (newMessage.chatRoomId === chatRoom._id) {
+                    setMessagesList((prevMessages) => [...prevMessages, newMessage]);
+                }
+            });
+
+            return () => {
+                socket.off('receiveMessage');
+            };
+        }
+    }, [chatRoom, socket, token]);
 
     const sendMessage = async (e) => {
         e.preventDefault();
-    
-        if (!content && !files) {
-            return;
-        }
-    
+        if (!content && !files) return;
+
         if (files && files.length > 0) {
             const formData = new FormData();
             for (let i = 0; i < files.length; i++) {
-                formData.append('file', files[i]); // 'file' should match the key used in multer
+                formData.append('file', files[i]);
             }
-    
+
             try {
                 const response = await axios.post('http://localhost:8000/api/v1/chatRoom/uploadImages', formData, {
                     headers: {
@@ -180,89 +126,62 @@ const UserList = () => {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
-    
                 const imageUrls = response.data.urls;
-        
-                socket.emit("sendMessage", { content: imageUrls, userId, roomId: chatRoom._id, isImage: true });
-               
-    
-                setFiles(null); // Reset the files state
-    
+                socket.emit("sendMessage", { fullName: userDetails.fullName, content: imageUrls, userId, roomId: chatRoom._id, isImage: true });
+                setFiles(null);
             } catch (error) {
                 alert("Error uploading files");
                 console.log("Error:", error);
             }
-    
         } else {
-            socket.emit('sendMessage', { roomId: chatRoom._id, userId, content });
+            socket.emit('sendMessage', { fullName: userDetails.fullName, roomId: chatRoom._id, userId, content });
             setContent('');
         }
     };
 
-    
-
-    useEffect(() => {
-        if (chatRoom) {
-            console.log("CHAT ROOOOOOOOM IDDDD ??? ", chatRoom._id)
-            socket.emit('joinRoom', { roomId: chatRoom._id, userId: userId });
-            const fetchMessages = () => {
-                axios.get(`http://localhost:8000/api/v1/chatRoom/getChatRoomMessages/${chatRoom._id}`, {
-                    headers: { Authorization: token }
-                }).then((resp) => {
-                    console.log("MESSSAGES :: ", resp.data.data)
-                    setMessagesList(resp.data.data);
-                }).catch((err) => {
-                    console.log("ERROR", err);
-                });
-            };
-
-            fetchMessages()
-
+    const selectRoom = (room) => {
+        if (room.isGroup) {
+            setReceiverInfo({ receiverId: room._id, fullName: room.groupName });
+            setChatRoom(room);
+        } else {
+            setReceiverInfo({ receiverId: room.otherMemberDetails[0]._id, fullName: room.otherMemberDetails[0].fullName });
+            setChatRoom(room);
         }
-    }, [chatRoom]);
-
-
-
-    // FOR SELECTING USER TO WHOM WE ARE SENDING MESSAGE 
-    const selectUser = (user) => {
-        setReceiverInfo({ receiverId: user._id, fullName: user.fullName });
-        getChatRoom(user._id);
-
     };
-
-    const getChatRoom = (receiverId) => {
-        const body = {
-            userId: userId,
-            receiverId: receiverId
-        }
-        // console.log("IDS ", body.userId, body.receiverId)
-        axios.post("http://localhost:8000/api/v1/chatRoom/createChatRoom", body, {
-            headers: { Authorization: `Bearer ${token}` }
-        }).then((resp) => {
-            console.log("rresp data ", resp.data.data)
-            setChatRoom(resp.data.data)
-        }).catch((err) => {
-            console.log("ERROR :: ", err)
-        })
-    }
 
     const handleFileChange = (e) => {
-        setFiles(e.target.files); // Note: `e.target.files` is a FileList, handle multiple files
+        setFiles(e.target.files);
     };
 
-    const [chatRooms, setChatRooms] = useState([]);
-    const [currentRoom, setCurrentRoom] = useState(null);
-    const [messages, setMessages] = useState([]);
-    const [message, setMessage] = useState('');
+    const handleCheckboxChange = (event, id) => {
+        if (event.target.checked) {
+            setSelectedChatRoomIds([...selectedChatRoomIds, id]);
+        } else {
+            setSelectedChatRoomIds(selectedChatRoomIds.filter((selectedId) => selectedId !== id));
+        }
+    };
 
-    // useEffect(() => {
-    //     const fetchChatRooms = async () => {
-    //         const { data } = await axios.get(`/api/chatrooms/user/${user._id}`);
-    //         setChatRooms(data);
-    //     };
+    const handleCreateButtonClick = () => {
+        console.log('Selected IDs:', selectedChatRoomIds, groupName);
+        const body = {
+            userId : userDetails._id,
+            groupName,
+            membersIds : selectedChatRoomIds
+        }
+        axios.post("http://localhost:8000/api/v1/chatRoom/createGroupChatRoom", body, {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then((resp) => {
+            alert("GROUP CREATED SUCCESSFULLY");
+            console.log("Resp GROUP ::: ", resp.data.data);
+        }).catch((error) => {
+            console.log("ERROR >> ", error)
+        })
+        handleModalToggle();
+    };
 
-    //     fetchChatRooms();
-    // }, [userId]);
+    const handleModalToggle = () => {
+        setIsModalOpen(!isModalOpen);
+    };
 
     return (
         <>
@@ -271,56 +190,74 @@ const UserList = () => {
                     <div className="tabs-left">
                         <div id="title_starts" className="chat-title">
                             <ul className="nav nav-tabs">
-                                <span className="search">
-                                    <input type="text" value="Search" className="input_search" /></span>
-                                {
-                                    users.map((user) => (
-                                        <li key={user._id} className="active" onClick={() => { selectUser(user) }}><a><h3 className="name">{user.fullName}</h3><span className={user.status === "online" ? "online" : "offline"}></span><h4 className="sub-msg">{user.content}</h4><h4 className="min">1 min</h4></a></li>
-                                    ))
-                                }
+                                <span className="search" style={{ color: "white" }}>
+                                    <input type="text" value="Search" className="input_search" />
+                                    <img
+                                        style={{ width: "10%", marginLeft: "10px" }}
+                                        onClick={handleModalToggle}
+                                        src='./plus.png'
+                                        alt="Add"
+                                    />
+                                </span>
+                                {allChatRooms.map((room) => (
+                                    <li key={room._id} className="active" onClick={() => { selectRoom(room) }}>
+                                        <a>
+                                            <h3 className="name">{room.isGroup ? room.groupName : room.otherMemberDetails[0].fullName}</h3>
+                                            <h4 className="sub-msg">{room.content}</h4>
+                                            <h4 className="min">1 min</h4>
+                                        </a>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                         <div className="tab-content chat-des">
-                            <div id="conversation_starts" className="tab-pane active"><span className="title">
-                                <h3>{receiverInfo.fullName}</h3>
-
-                                <span className="video icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_vdo.png" alt="" /></span>
-                                <span className="call icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_call.png" alt="" /></span>
-                                <span className="star icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_star.png" alt="" /></span>
-                            </span>
+                            <div id="conversation_starts" className="tab-pane active">
+                                <span className="title">
+                                    <h3>{receiverInfo.fullName}</h3>
+                                    <span className="video icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_vdo.png" alt="video" /></span>
+                                    <span className="call icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_call.png" alt="call" /></span>
+                                    <span className="star icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_star.png" alt="star" /></span>
+                                </span>
                                 <div className="message-info">
-                                    {
-                                        messagesList.map((message) => (
-                                            <div key={message._id} className={message.sender._id === userId || message.sender === userId ? "full snd_row" : "full"}>
-                                                <img src="https://akshaysyal.files.wordpress.com/2017/03/profile.jpg" className="dp" alt="profile" />
-
+                                    {messagesList.map((message) => (
+                                        <div key={message._id} className={message.sender._id === userId || message.sender === userId ? "full snd_row" : "full"}>
+                                            <img src="https://akshaysyal.files.wordpress.com/2017/03/profile.jpg" className="dp" alt="profile" />
+                                            <span className="text">
+                                                <p><strong style={{ color: "black" }}>{userId === message.sender ? "You" : message.fullName ? message.fullName : message.senderDetails.fullName}</strong></p>
                                                 {message.isImage ? (
-                                                    message.imageUrl.map((url) => <img src={url} alt="Sent Image" style={{ width: "300px", borderRadius: "none" }} />)
+                                                    message.imageUrl.map((url) => <img src={url} alt="Sent" style={{ width: "300px", borderRadius: "none" }} />)
                                                 ) : (
-                                                    <span className="text">
-                                                        <span>{message.content}</span>
-                                                    </span>
+                                                    <span>{message.content}</span>
                                                 )}
-
-                                                <h5>{new Date(message.createdAt).toLocaleString()}</h5>
-                                            </div>
-                                        ))
-                                    }
+                                            </span>
+                                            <h5>{new Date(message.createdAt).toLocaleString()}</h5>
+                                        </div>
+                                    ))}
                                 </div>
                                 <form onSubmit={sendMessage}>
                                     <div className="reply">
                                         <div className="attach">
-                                            <a href="#"><div className="custom-file-upload">
-                                                <label htmlFor="file-upload"><img src="https://akshaysyal.files.wordpress.com/2017/03/attch_big.png" alt="" width="16" /></label>
-                                                <input multiple id='file-upload' type="file" onChange={handleFileChange} />
-                                            </div></a>
+                                            <a href="#">
+                                                <div className="custom-file-upload">
+                                                    <label htmlFor="file-upload">
+                                                        <img src="https://akshaysyal.files.wordpress.com/2017/03/attch_big.png" alt="attach" width="16" />
+                                                    </label>
+                                                    <input multiple id='file-upload' type="file" onChange={handleFileChange} />
+                                                </div>
+                                            </a>
                                         </div>
-
                                         <div className="reply-area">
-                                            <textarea className="form-control" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Type your message...."></textarea>
+                                            <textarea
+                                                className="form-control"
+                                                value={content}
+                                                onChange={(e) => setContent(e.target.value)}
+                                                placeholder="Type your message...."
+                                            ></textarea>
                                         </div>
                                         <div className="reply-submit">
-                                            <button type="submit" className="btn btn-default simple-btn text-center"><img src="https://akshaysyal.files.wordpress.com/2017/03/send_icon.png" alt="send" /></button>
+                                            <button type="submit" className="btn btn-default simple-btn text-center">
+                                                <img src="https://akshaysyal.files.wordpress.com/2017/03/send_icon.png" alt="send" />
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -328,6 +265,33 @@ const UserList = () => {
                         </div>
                     </div>
                 </div>
+                <Modal
+                    isOpen={isModalOpen}
+                    onRequestClose={handleModalToggle}
+                    contentLabel="Create Group Modal"
+                >
+                    <h2>Create Group</h2>
+                    <input type='text' placeholder='Enter Group Name' onChange={(e) => setGroupName(e.target.value)} />
+
+                    <ul>
+                        {allChatRooms.map((room) => (
+                            !room.isGroup && (
+                                <li key={room._id}>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            onChange={(e) => handleCheckboxChange(e, room.otherMemberDetails[0]._id)}
+                                        />
+                                        {room.otherMemberDetails[0].fullName}
+                                    </label>
+                                </li>
+                            )
+                        ))}
+
+                    </ul>
+                    <button onClick={handleCreateButtonClick}>Create</button>
+                    <button onClick={handleModalToggle}>Close</button>
+                </Modal>
             </div>
         </>
     );
