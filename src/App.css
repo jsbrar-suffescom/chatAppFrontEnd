@@ -133,9 +133,9 @@ a:active {outline:0;}
   width: 100%;
   margin-bottom: 0;
   border: 0px;
-  /* min-height: 282px; */
-  /* max-height: 476px; */
-  /* overflow: auto; */
+  min-height: 282px;
+  max-height: 100vh;
+  overflow: auto;
   /* overflow-x: hidden; */
 }
 #loadgrid .chat-title ul .search{padding:10px 20px;width: 100%;float: left;border-bottom: 1px #323840 solid;}
@@ -145,7 +145,7 @@ a:active {outline:0;}
   margin: 0;
   padding: 0;
   padding-left: 12%;
-  width: 86%;
+  width: 73%;
   height: 34px;
   float: left;
   display: block;
@@ -160,8 +160,15 @@ a:active {outline:0;}
 #loadgrid .chat-title ul li .unread{color: #000;background:#fff;border-radius:50px;border: 0px #212c38 solid;float:right;width:25px;height:25px;padding:3px 4px;line-height: 21px;text-align: center;font-size: 12px;margin-right:20px;}
 #loadgrid .chat-title ul li:last-child{border-right: 0px #ddd solid;}
 #loadgrid .chat-title ul li a{padding: 11px 15px 6px 15px;background: #2b3c58;width: 100%;color: #fff;float: left;clear: both;border-bottom: 1px #24344b solid;}
-#loadgrid .chat-title ul li a .name{font-size: 12px;font-weight: normal;margin: 0px;width: 100%;float: left;text-align: left;}
-#loadgrid .chat-title ul li a .online{ background: #25b000; padding: 3px; width: 2px;height: 2px; /* float: left; */ position: relative; border-radius: 20px;top: -20px;right: 0;left: 45px;display: inline-block;}
+#loadgrid .chat-title ul li a .name {
+  font-size: 12px;
+  font-weight: normal;
+  margin: 0px;
+  width: 100%;
+  float: left;
+  text-align: left;
+  padding: 10px 0px;
+}#loadgrid .chat-title ul li a .online{ background: #25b000; padding: 3px; width: 2px;height: 2px; /* float: left; */ position: relative; border-radius: 20px;top: -20px;right: 0;left: 45px;display: inline-block;}
 #loadgrid .chat-title ul li a .sub-msg{font-size: 10px;color: #b7bbc1;margin: 5px 0;float: left;width: 80%;text-align: left;}
 #loadgrid .chat-title ul li a .offline{ background: red; padding: 3px; width: 2px;height: 2px; /* float: left; */ position: relative; border-radius: 20px;top: -20px;right: 0;left: 45px;display: inline-block;}
 #loadgrid .chat-title ul li a .min{font-size: 11px;color: #979ea6;margin: 5px 0;float: right;width: 16%;text-align: right;}
@@ -171,8 +178,15 @@ a:active {outline:0;}
 #loadgrid .chat-des{float: left;width: 74%;margin-left: 0px;/* z-index: 999999999; */border-left: 1px #ddd solid;background: #fff;}
 #loadgrid .chat-des .tab-pane{}
 #loadgrid .chat-des .tab-pane .title{width: 100%;float: left;padding: 0;background: #fff;border-bottom: 1px #ddd solid;height: 55px;}
-#loadgrid .chat-des .tab-pane .title h3{float: left;font-size: 14px;margin: 0px;line-height: 25px;color: #282e35;padding: 15px 7px; font-weight:600;}
-#loadgrid .chat-des .tab-pane .title h3 strong{ font-size:10px; font-weight:600;}
+#loadgrid .chat-des .tab-pane .title h3 {
+  float: left;
+  font-size: 14px;
+  margin: 0px;
+  line-height: 18px;
+  color: #282e35;
+  padding: 15px 7px;
+  font-weight: 600;
+}#loadgrid .chat-des .tab-pane .title h3 strong{ font-size:10px; font-weight:600;}
 #loadgrid .chat-des .tab-pane .title .icons{line-height: 25px;color: #282e35;padding: 4px 7px;width: 35px;margin: 8px 4px;height: 35px;text-align: center;border: 1px #ddd solid;/* margin: -1px; */border-top: 0px;cursor: pointer;background: #e4e5e7;float: right;border-radius: 60px;}
 #loadgrid .chat-des .tab-pane .message-info {
   width: 100%;
@@ -198,8 +212,18 @@ a:active {outline:0;}
 #loadgrid .chat-des .tab-pane .reply{float:left;width:100%;border-top: 1px #ddd solid;padding: 0;background: #fff;}
 #loadgrid .chat-des .tab-pane .reply .reply-area{width: 86%;float:left;}
 #loadgrid .chat-des .tab-pane .reply .attach{line-height: 25px;color: #282e35;padding: 11px 7px;width: 44px;height: 44px;text-align: center;border: 0px #ddd solid;margin: -1px;cursor: pointer;float: left;border-right: 0px;}
-#loadgrid .chat-des .tab-pane .reply .reply-area textarea{border-radius:0px;box-shadow:none;margin-right: 0px;float:left;resize:none;border: 0px;font-size: 12px;height: 44px;}
-#loadgrid .chat-des .tab-pane .reply .reply-submit{border-radius:0px; box-shadow:none; margin-left:5px; float:left;}
+#loadgrid .chat-des .tab-pane .reply .reply-area textarea {
+  border-radius: 0px;
+  box-shadow: none;
+  margin-right: 0px;
+  float: left;
+  resize: none;
+  border: 0px;
+  font-size: 12px;
+  height: 44px;
+  padding: 14px 0px;
+  margin-left: 60px;
+}#loadgrid .chat-des .tab-pane .reply .reply-submit{border-radius:0px; box-shadow:none; margin-left:5px; float:left;}
 #loadgrid .chat-des .tab-pane .reply .reply-submit .btn{box-shadow:none;margin-left:5px;float: right;padding: 7px;font-size:13px;text-transform:uppercase;background: #3b4f6a;color: #777;margin-top: 5px;border: 1px #777 solid;border-radius: 40px;font-weight: 600;width: 40px;height: 40px;margin-bottom: 5px;}
 
 
@@ -236,3 +260,63 @@ a:active {outline:0;}
   background-color: #0056b3;
   border-color: #0056b3;
 }
+
+.addFriendUserSearch input {
+  width: 100%;
+  padding: 11px;
+  border-radius: 5px;
+}
+.addFriendUsersList ul li {
+  list-style: none;
+  font-size: 22px;
+  text-align: center;
+}
+ ul{
+  padding:  0;
+  margin:  0;
+ }
+
+ .showAllFriends {
+  margin: auto;
+  padding: 8px 10px;
+  border-radius: 20px;
+  background-color: white;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: 60px; /* Adjust based on your layout */
+  right: 10px; /* Adjust based on your layout */
+}
+
+.emoji-button {
+  cursor: pointer;
+}
+.emoji-picker-container {
+  position: absolute;
+  bottom: 8px;
+  /* right: 20px; */
+  /* z-index: 1000; */
+}
+
+.emoji-picker-container .emoji-picker-react {
+  max-width: 300px; /* Set a maximum width for the emoji picker */
+  max-height: 400px; /* Set a maximum height for the emoji picker */
+  overflow: hidden; /* Hide overflow to prevent scrollbars */
+}
+
+.emojiButton{
+
+    box-shadow: none;
+    outline: none;
+    border: none;
+    border-radius: 50%;
+    padding: 10px 8px;
+
+}
+
+
+
+
+
+
