@@ -3,6 +3,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import Modal from 'react-modal';
 import EmojiPicker from 'emoji-picker-react';
+import { saveAs } from 'file-saver';
 
 const UserList = () => {
 
@@ -17,6 +18,7 @@ const UserList = () => {
     const [groupName, setGroupName] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
+    const [isViewImageModalOpen, setIsViewImageModalOpen] = useState(false)
     const [usersAfterSearch, setUsersAfterSearch] = useState([])
 
     const socket = useMemo(() => io("http://localhost:8000", { withCredentials: true }), []);
@@ -232,6 +234,13 @@ const UserList = () => {
         setIsAddFriendModalOpen(!isAddFriendModalOpen);
     };
 
+    const [imageUrl, setImageUrl] = useState("")
+
+    const handleViewImageModalToggle = (url) => {
+        setImageUrl(url)
+        setIsViewImageModalOpen(!isViewImageModalOpen)
+    }
+ 
     // SEARCHING USERS 
 
 
@@ -344,6 +353,25 @@ const UserList = () => {
         setPickerVisible(false); // Hide the picker after selecting an emoji
     };
 
+    const handleFileDownload = async (url, filename) => {
+        try {
+            const response = await axios({
+                url: url,
+                method: 'GET',
+                responseType: 'blob', // Important for downloading files
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                },
+            });
+    
+            // Using FileSaver to save the file
+            const blob = new Blob([response.data], { type: response.headers['content-type'] });
+            saveAs(blob, filename);
+        } catch (error) {
+            console.error("Error downloading the file", error);
+        }
+    };
+
 
     return (
         <>
@@ -394,8 +422,8 @@ const UserList = () => {
                                             <span className="text">
                                                 <p><strong style={{ color: "black" }}>{userId === message.sender ? "You" : message.fullName ? message.fullName : message.senderDetails.fullName}</strong></p>
                                                 {message.isImage ? (
-                                                    message.imageUrl.map((url) => <img src={url} alt="Sent" style={{ width: "300px", borderRadius: "none" }} />)
-                                                ) : (
+                                                    message.imageUrl.map((url) => <div key={url} style={{ position: 'relative', display: 'inline-block' }}><img onClick={() => handleViewImageModalToggle(url)} src={url} alt="Sent" style={{ width: "300px", borderRadius: "none" }} /> <div  style={{ position: 'absolute', bottom: '0', right: '0', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '2px 5px', borderRadius: '3px', textDecoration: 'none' }} onClick={() => handleFileDownload(url)}>Download</div></div> )
+                                                ): (
                                                     <span>{message.content}</span>
                                                 )}
                                             </span>
@@ -534,6 +562,28 @@ const UserList = () => {
                             <button onClick={handleAddFriendModalToggle}>Close</button>
                         </div>
                     </div>
+                </Modal>
+
+
+
+                <Modal
+                    isOpen={isViewImageModalOpen}
+                    onRequestClose={handleViewImageModalToggle}
+                    contentLabel="Add Friend Modal"
+                >
+                    <div className='addFriendsBody'>
+    <div className='container'>
+        <div className='row align-items-center justify-content-center'>
+            <div className='col-lg-12'>
+                <div style={{ textAlign: "center", maxWidth: "100%" }}>
+                    <img style={{ width: "100%", maxHeight: "100vh", objectFit: "contain" }} src={imageUrl} alt="Friend" />
+                </div>
+            </div>
+        </div>
+        <button onClick={handleViewImageModalToggle}>Close</button>
+    </div>
+</div>
+
                 </Modal>
             </div>
         </>

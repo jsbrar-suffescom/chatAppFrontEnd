@@ -223,8 +223,15 @@ a:active {outline:0;}
   height: 44px;
   padding: 14px 0px;
   margin-left: 60px;
-}#loadgrid .chat-des .tab-pane .reply .reply-submit{border-radius:0px; box-shadow:none; margin-left:5px; float:left;}
-#loadgrid .chat-des .tab-pane .reply .reply-submit .btn{box-shadow:none;margin-left:5px;float: right;padding: 7px;font-size:13px;text-transform:uppercase;background: #3b4f6a;color: #777;margin-top: 5px;border: 1px #777 solid;border-radius: 40px;font-weight: 600;width: 40px;height: 40px;margin-bottom: 5px;}
+}
+#loadgrid .chat-des .tab-pane .reply .reply-submit {
+  border-radius: 0px;
+  box-shadow: none;
+  /* margin-left: 5px; */
+  float: left;
+}#loadgrid .chat-des .tab-pane .reply .reply-submit .btn{box-shadow:none;margin-left:5px;float: right;padding: 7px;font-size:13px;text-transform:uppercase;background: #3b4f6a;color: #777;margin-top: 5px;border: 1px #777 solid;border-radius: 40px;font-weight: 600;width: 40px;height: 40px;margin-bottom: 5px;}
+
+
 
 
 
