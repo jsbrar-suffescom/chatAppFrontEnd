@@ -3,7 +3,9 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import Modal from 'react-modal';
 import EmojiPicker from 'emoji-picker-react';
+import mongoose from 'mongoose'
 import { saveAs } from 'file-saver';
+import { nanoid } from "nanoid"
 
 const UserList = () => {
 
@@ -20,10 +22,24 @@ const UserList = () => {
     const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
     const [isViewImageModalOpen, setIsViewImageModalOpen] = useState(false)
     const [usersAfterSearch, setUsersAfterSearch] = useState([])
+    const [resendContent, setResendContent] = useState("")
+    const [failedMessages, setFailedMessages] = useState([])
 
-    const socket = useMemo(() => io("http://localhost:8000", { withCredentials: true }), []);
+    // const socket = useMemo(() => io("http://localhost:8000", { withCredentials: true }), []);
+    const socket = useMemo(() => io('http://localhost:8000', {
+        withCredentials: true,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 500,
+        reconnectionDelayMax: 2000,
+        randomizationFactor: 0.5
+    }), []);
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        console.log("SOCKET DATA", socket)
+    }, [socket])
 
     // Fetch User Details
     const fetchUserDetails = () => {
@@ -69,34 +85,37 @@ const UserList = () => {
             setAllChatRooms((prevRooms) => {
                 // Check if prevRooms is an array
                 if (Array.isArray(prevRooms)) {
-                  return prevRooms.map(room => {
-                    // Check if otherMemberDetails is defined and has at least one element
-                    const updatedMemberDetails = room.otherMemberDetails && room.otherMemberDetails.length > 0
-                      ? [
-                          {
-                            ...room.otherMemberDetails[0],
-                            status: room.otherMemberDetails[0]._id === updatedUser._id ? updatedUser.status : room.otherMemberDetails[0].status
-                          }
-                        ]
-                      : [];
-              
-                    return {
-                      ...room,
-                      otherMemberDetails: updatedMemberDetails
-                    };
-                  });
+                    return prevRooms.map(room => {
+                        // Check if otherMemberDetails is defined and has at least one element
+                        const updatedMemberDetails = room.otherMemberDetails && room.otherMemberDetails.length > 0
+                            ? [
+                                {
+                                    ...room.otherMemberDetails[0],
+                                    status: room.otherMemberDetails[0]._id === updatedUser._id ? updatedUser.status : room.otherMemberDetails[0].status
+                                }
+                            ]
+                            : [];
+
+                        return {
+                            ...room,
+                            otherMemberDetails: updatedMemberDetails
+                        };
+                    });
                 }
-                
+
                 // If prevRooms is not an array, return it as-is
                 return prevRooms;
-              });
-              
-              
-                          setReceiverInfo((prevUser) => 
-                prevUser.receiverId === updatedUser._id 
-                  ? { ...prevUser, status: updatedUser.status } 
-                  : prevUser
-              );        });
+            });
+
+
+            setReceiverInfo((prevUser) =>
+                prevUser.receiverId === updatedUser._id
+                    ? { ...prevUser, status: updatedUser.status }
+                    : prevUser
+            );
+        });
+
+
 
         getFriendRequests();
 
@@ -105,7 +124,7 @@ const UserList = () => {
             socket.emit('updateStatus', { userId, status: "offline" });
             socket.disconnect();
         };
-    }, [socket, userId, token]);
+    }, [socket, userId, token, resendContent]);
 
     const sortChat = (roomId, latestMessage) => {
         setAllChatRooms((prevRooms) => {
@@ -130,14 +149,36 @@ const UserList = () => {
                 axios.get(`http://localhost:8000/api/v1/chatRoom/getChatRoomMessages/${chatRoom._id}`, {
                     headers: { Authorization: token }
                 }).then((resp) => {
-                    setMessagesList(resp.data.data);
+                    // Retrieve and parse failed messages from localStorage
+                    const storedFailedMessages = localStorage.getItem('failedMessages');
+                    const failedMessagesList = storedFailedMessages ? JSON.parse(storedFailedMessages) : [];
+            
+                    // Filter failed messages to only include those that belong to the current chat room
+                    const relevantFailedMessages = failedMessagesList.filter(failedMessage => chatRoom._id === failedMessage.chatRoomId);
+            
+                    // Combine fetched messages with relevant failed messages
+                    const combinedMessages = [...resp.data.data, ...relevantFailedMessages];
+            
+                    // Sort combined messages based on createdAt property
+                    const sortedMessages = combinedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            
+                    // Set the messages list state with the sorted messages
+                    setMessagesList(sortedMessages);
+            
+                    // Optionally, set the failed messages state
+                    setFailedMessages(relevantFailedMessages);
+            
+                    // Optionally, clear failed messages from localStorage
+                    // localStorage.setItem('failedMessages', JSON.stringify([]));
                 }).catch((err) => {
                     console.log("ERROR", err);
                 });
             };
+            
             fetchMessages();
 
             socket.on('receiveMessage', (newMessage) => {
+                console.log("RECEIVE MESSAGE REACHED")
                 if (newMessage.chatRoomId === chatRoom._id) {
                     setMessagesList((prevMessages) => [...prevMessages, newMessage]);
                 }
@@ -148,15 +189,47 @@ const UserList = () => {
                 socket.off('receiveMessage');
             };
         }
-    }, [chatRoom, socket, token]);
+    }, [chatRoom, socket, token, resendContent]);
+
+
+
+    const resendMessage = (message) => {
+        if (socket.connected) {
+            socket.emit('joinRoom', { roomId: chatRoom._id, userId });
+            console.log("RESPONSE AFTER FAILURE");
+            if (message.error) {
+                const { content, chatRoomId } = message;
+                socket.emit('sendMessage', { fullName: userDetails.fullName, roomId: chatRoomId, userId, content }, (response) => {
+                    if (response.success) {
+                        // Update messagesList and failedMessages
+                        setMessagesList((prevMessages) => prevMessages.filter((msg) => msg._id !== message._id));
+                        setFailedMessages((prevFailedMessages) => {
+                            const updatedFailedMessages = prevFailedMessages.filter((msg) => msg._id !== message._id);
+                            localStorage.setItem('failedMessages', JSON.stringify(updatedFailedMessages));
+                            return updatedFailedMessages;
+                        });
+                        console.log("MESSAGE LIST", messagesList)
+                    } else {
+                        console.log("Resend failed");
+                    }
+                });
+            }
+        }
+    };
+    
+    const [socketConnection, setSocketConnection] = useState(false)
+
 
     const sendMessage = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
-        // Check if both content and files are empty
+        if(socketConnection){
+            socket.emit('joinRoom', { roomId: chatRoom._id, userId });
+        }
+
+
         if (!content && (!files || files.length === 0)) return;
 
-        // If there are files to upload
         if (files && files.length > 0) {
             const formData = new FormData();
             for (let i = 0; i < files.length; i++) {
@@ -171,18 +244,70 @@ const UserList = () => {
                     }
                 });
                 const imageUrls = response.data.urls;
-                socket.emit("sendMessage", { fullName: userDetails.fullName, content: imageUrls, userId, roomId: chatRoom._id, isImage: true });
+                socket.emit("sendMessage", { fullName: userDetails.fullName, content: imageUrls, userId, roomId: chatRoom._id, isImage: true }, (response) => {
+                    console.log("RESPONSE >> ", response)
+                });
                 setFiles(null);
             } catch (error) {
-                alert("Error uploading files");
+                alert("FAILED TO SEND FILE");
+                setFiles(null)
                 console.log("Error:", error);
             }
         } else if (content) {
-            // If there is content but no files
-            socket.emit('sendMessage', { fullName: userDetails.fullName, roomId: chatRoom._id, userId, content });
+            if(socket.connected){
+                const data = socket.emit('sendMessage', { fullName: userDetails.fullName, roomId: chatRoom._id, userId, content }, (response) => {
+
+                    if (!response.success) {
+    
+                        const messageFailed = {
+                            _id: nanoid(),
+                            content: content,
+                            isImage: false,
+                            sender: userDetails._id,
+                            chatRoomId: chatRoom._id,
+                            createdAt: Date.now(),
+                            error: true
+                        }
+    
+                        setMessagesList([...messagesList, messageFailed]);
+    
+                        setFailedMessages([...failedMessages, messageFailed])
+    
+                    }
+                    else{
+                        setSocketConnection(false)
+                    }
+                });
+            }
+            else{
+                setSocketConnection(true)
+                alert("SOCKET DISCCONECT")
+                const messageFailed = {
+                    _id: nanoid(),
+                    content: content,
+                    isImage: false,
+                    sender: userDetails._id,
+                    chatRoomId: chatRoom._id,
+                    createdAt: Date.now(),
+                    error: true
+                }
+                setMessagesList([...messagesList, messageFailed]);
+
+                setFailedMessages([...failedMessages, messageFailed])
+            }
+
             setContent('');
+            console.log("FAILED MESSAGES", failedMessages)
+
+
         }
+
+
     };
+
+    useEffect(() => {
+            localStorage.setItem('failedMessages', JSON.stringify(failedMessages));
+    }, [failedMessages]);
 
 
     const selectRoom = (room) => {
@@ -191,7 +316,7 @@ const UserList = () => {
             setChatRoom(room);
         } else {
 
-            setReceiverInfo({ receiverId: room.otherMemberDetails[0]?._id, fullName: room.otherMemberDetails[0]?.fullName, status : room.otherMemberDetails[0].status });
+            setReceiverInfo({ receiverId: room.otherMemberDetails[0]?._id, fullName: room.otherMemberDetails[0]?.fullName, status: room.otherMemberDetails[0].status });
             setChatRoom(room);
         }
     };
@@ -240,7 +365,7 @@ const UserList = () => {
         setImageUrl(url)
         setIsViewImageModalOpen(!isViewImageModalOpen)
     }
- 
+
     // SEARCHING USERS 
 
 
@@ -363,7 +488,7 @@ const UserList = () => {
                     'Content-Type': 'application/octet-stream',
                 },
             });
-    
+
             // Using FileSaver to save the file
             const blob = new Blob([response.data], { type: response.headers['content-type'] });
             saveAs(blob, filename);
@@ -371,6 +496,8 @@ const UserList = () => {
             console.error("Error downloading the file", error);
         }
     };
+
+
 
 
     return (
@@ -410,7 +537,7 @@ const UserList = () => {
                         <div className="tab-content chat-des">
                             <div id="conversation_starts" className="tab-pane active">
                                 <span className="title">
-                                    <h3>{receiverInfo.fullName} <br/> <span style={{color : 'forestgreen'}}>{receiverInfo.status === "online" ? receiverInfo.status : null }</span></h3>
+                                    <h3>{receiverInfo.fullName} <br /> <span style={{ color: 'forestgreen' }}>{receiverInfo.status === "online" ? receiverInfo.status : null}</span></h3>
                                     <span className="video icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_vdo.png" alt="video" /></span>
                                     <span className="call icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_call.png" alt="call" /></span>
                                     <span className="star icons"><img src="https://akshaysyal.files.wordpress.com/2017/03/icon_star.png" alt="star" /></span>
@@ -420,16 +547,25 @@ const UserList = () => {
                                         <div key={message._id} className={message.sender._id === userId || message.sender === userId ? "full snd_row" : "full"}>
                                             <img src="https://akshaysyal.files.wordpress.com/2017/03/profile.jpg" className="dp" alt="profile" />
                                             <span className="text">
-                                                <p><strong style={{ color: "black" }}>{userId === message.sender ? "You" : message.fullName ? message.fullName : message.senderDetails.fullName}</strong></p>
+                                                <p><strong style={{ color: "black" }}>{userId === message.sender ? "You" : message.fullName || message.senderDetails.fullName}</strong></p>
                                                 {message.isImage ? (
-                                                    message.imageUrl.map((url) => <div key={url} style={{ position: 'relative', display: 'inline-block' }}><img onClick={() => handleViewImageModalToggle(url)} src={url} alt="Sent" style={{ width: "300px", borderRadius: "none" }} /> <div  style={{ position: 'absolute', bottom: '0', right: '0', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '2px 5px', borderRadius: '3px', textDecoration: 'none' }} onClick={() => handleFileDownload(url)}>Download</div></div> )
-                                                ): (
+                                                    message.imageUrl.map((url) => (
+                                                        <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
+                                                            <img onClick={() => handleViewImageModalToggle(url)} src={url} alt="Sent" style={{ width: "300px", borderRadius: "none" }} />
+                                                            <div style={{ position: 'absolute', bottom: '0', right: '0', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '2px 5px', borderRadius: '3px', textDecoration: 'none' }} onClick={() => handleFileDownload(url)}>Download</div>
+                                                        </div>
+                                                    ))
+                                                ) : (
                                                     <span>{message.content}</span>
+                                                )}
+                                                {message.error && message.sender === userDetails._id && (
+                                                    <p onClick={() => resendMessage(message)} style={{ color: "red" }}>Failed to send message. Click Here to Retry</p>
                                                 )}
                                             </span>
                                             <h5>{new Date(message.createdAt).toLocaleString()}</h5>
                                         </div>
                                     ))}
+
                                 </div>
                                 {pickerVisible && (
                                     <div className="emoji-picker-container">
@@ -572,17 +708,17 @@ const UserList = () => {
                     contentLabel="Add Friend Modal"
                 >
                     <div className='addFriendsBody'>
-    <div className='container'>
-        <div className='row align-items-center justify-content-center'>
-            <div className='col-lg-12'>
-                <div style={{ textAlign: "center", maxWidth: "100%" }}>
-                    <img style={{ width: "100%", maxHeight: "100vh", objectFit: "contain" }} src={imageUrl} alt="Friend" />
-                </div>
-            </div>
-        </div>
-        <button onClick={handleViewImageModalToggle}>Close</button>
-    </div>
-</div>
+                        <div className='container'>
+                            <div className='row align-items-center justify-content-center'>
+                                <div className='col-lg-12'>
+                                    <div style={{ textAlign: "center", maxWidth: "100%" }}>
+                                        <img style={{ width: "100%", maxHeight: "100vh", objectFit: "contain" }} src={imageUrl} alt="Friend" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={handleViewImageModalToggle}>Close</button>
+                        </div>
+                    </div>
 
                 </Modal>
             </div>
